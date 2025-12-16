@@ -1,0 +1,46 @@
+{
+  "name": "greyzone",
+  "version": "0.1.0",
+  "description": "Secure environment variable manager with MCP integration",
+  "type": "module",
+  "bin": {
+    "greyzone": "./dist/cli/index.js",
+    "gz": "./dist/cli/index.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "start": "node dist/cli/index.js",
+    "mcp": "node dist/mcp/index.js",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "env",
+    "environment",
+    "secrets",
+    "mcp",
+    "cli",
+    "encrypted"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.24.3",
+    "better-sqlite3-multiple-ciphers": "12.5.0",
+    "commander": "12.1.0",
+    "libsodium-wrappers": "0.7.15",
+    "yaml": "2.8.2"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "7.6.13",
+    "@types/libsodium-wrappers": "0.7.14",
+    "@types/node": "22.19.3",
+    "typescript": "5.9.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
