@@ -26,11 +26,15 @@ import {
 } from "../services/project-config.js";
 import { maskValue } from "../utils/mask.js";
 import { DEFAULT_PROFILE } from "../config.js";
+import { createRequire } from "module";
+
+const require = createRequire(import.meta.url);
+const { version } = require("../../package.json");
 
 const server = new Server(
   {
     name: "greyzone",
-    version: "0.2.0",
+    version,
   },
   {
     capabilities: {

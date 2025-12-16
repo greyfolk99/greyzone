@@ -1,7 +1,7 @@
 {
   "name": "greyzone",
   "version": "0.1.0",
-  "description": "Secure environment variable manager with MCP integration",
+  "description": "Stop AI agents from corrupting your .env files",
   "type": "module",
   "bin": {
     "greyzone": "./dist/cli/index.js",

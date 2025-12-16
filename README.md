@@ -1,6 +1,6 @@
 # Greyzone (gz)
 
-Secure environment variable manager with MCP integration for AI agents.
+Stop AI agents from corrupting your `.env` files.
 
 ## Why?
 
@@ -64,11 +64,24 @@ gz github --account myuser --repo owner/repo
 gz push API_KEY DATABASE_URL
 ```
 
-## Storage Structure
+## Configuration
+
+### Project Config (`.greyzone/config.yml`)
+
+Created by `gz init`. You can edit this file directly.
+
+```yaml
+project: myproject
+github:
+  account: username      # Your GitHub username
+  repo: owner/repo       # Target repository for secrets
+```
+
+### Storage Structure
 
 ```
 .greyzone/                       # Local project (in project root)
-├── config.yml                   # Project config (name, github)
+├── config.yml                   # Project config (see above)
 ├── default/
 │   ├── store.db                 # User variables (encrypted)
 │   └── locked.db                # Locked variables (encrypted, requires sudo)
@@ -77,7 +90,8 @@ gz push API_KEY DATABASE_URL
     └── locked.db
 
 ~/.greyzone/                     # Global scope
-├── master.key                   # Encryption key
+├── master.key                   # Encryption key (auto-generated)
+├── config.yml                   # Global config (optional)
 ├── default/
 │   ├── store.db
 │   └── locked.db
@@ -85,6 +99,12 @@ gz push API_KEY DATABASE_URL
     ├── store.db
     └── locked.db
 ```
+
+### Encryption
+
+- All `.db` files are encrypted with SQLCipher (AES-256)
+- Encryption key is stored in `~/.greyzone/master.key` (mode 0400)
+- Key is auto-generated on first use
 
 ### Priority Order (highest to lowest)
 
