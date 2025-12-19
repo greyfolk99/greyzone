@@ -32,7 +32,29 @@ const program = new Command();
 
 program
   .name("gz")
-  .description("Environment variable manager for AI agents via MCP")
+  .description(
+`Secure environment variable manager that prevents AI agents from corrupting secrets.
+
+WHY USE THIS?
+  AI agents (Claude, Cursor, etc.) often corrupt .env files by overwriting or deleting values.
+  Greyzone stores secrets in encrypted SQLite, so AI can read but not accidentally destroy them.
+  Use --locked with sudo to store critical secrets that AI cannot modify at all.
+
+QUICK START:
+  gz init myproject          # Initialize in current directory
+  gz set API_KEY sk-xxx      # Store a secret
+  gz get API_KEY             # Retrieve it
+  gz list                    # Show all keys
+  eval $(gz export)          # Export to shell
+
+LOCKED PROTECTION (AI-proof):
+  sudo gz set API_KEY sk-xxx --locked    # AI can read, but cannot modify
+  gz get API_KEY                         # Works normally (read-only for AI)
+
+MCP SERVER (for AI agents):
+  Add to claude_desktop_config.json:
+  { "mcpServers": { "greyzone": { "command": "npx", "args": ["-y", "greyzone", "mcp"], "cwd": "/your/project" }}}
+`)
   .version("0.1.0");
 
 // Shared options
