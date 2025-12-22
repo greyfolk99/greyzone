@@ -1,5 +1,7 @@
 # Greyzone (gz)
 
+A lightweight local vault for AI-safe development.
+
 Stop AI agents from corrupting your `.env` files.
 
 ## Why?
