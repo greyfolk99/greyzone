@@ -1,0 +1,22 @@
+{
+  "name": "greyzone-cli",
+  "version": "0.1.0",
+  "description": "Greyzone CLI - 환경변수 주입 및 승인 요청",
+  "bin": {
+    "greyzone": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "ts-node src/index.ts"
+  },
+  "dependencies": {
+    "commander": "^12.0.0",
+    "dotenv": "^16.0.0",
+    "node-fetch": "^3.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0",
+    "ts-node": "^10.0.0"
+  }
+}
