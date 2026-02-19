@@ -753,13 +753,73 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', time: new Date().toISOString() });
 });
 
-// SPA fallback - 모든 경로를 index.html로 (API 제외)
-app.get('*', (req, res) => {
-  res.sendFile(join(__dirname, '..', 'web', 'index.html'));
-});
-
 // Start server
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`🔐 Greyzone Server running on http://0.0.0.0:${PORT}`);
   console.log(`RP_ID: ${RP_ID}, ORIGIN: ${ORIGIN}`);
+});
+
+// Config API
+const CONFIG_FILE = join(__dirname, '..', 'config.json');
+
+function loadConfig() {
+  try {
+    if (existsSync(CONFIG_FILE)) {
+      return JSON.parse(readFileSync(CONFIG_FILE, 'utf-8'));
+    }
+  } catch (e) {}
+  return { storage: 'local' };
+}
+
+function saveConfig(config) {
+  writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2));
+}
+
+app.get('/api/config', (req, res) => {
+  res.json(loadConfig());
+});
+
+app.post('/api/config', (req, res) => {
+  const config = { ...loadConfig(), ...req.body };
+  saveConfig(config);
+  res.json(config);
+});
+
+// Doppler secrets (읽기 전용)
+app.get('/api/doppler/secrets', async (req, res) => {
+  const config = loadConfig();
+  if (config.storage !== 'doppler') {
+    return res.json({ error: 'Doppler not configured' });
+  }
+  
+  const { project, config: dopplerConfig } = config.doppler || {};
+  if (!project) {
+    return res.json({ error: 'Doppler project not set' });
+  }
+  
+  try {
+    const { execSync } = require('child_process');
+    const result = execSync(
+      `doppler secrets --json --project ${project} --config ${dopplerConfig || 'dev'}`,
+      { encoding: 'utf-8', timeout: 30000 }
+    );
+    const secrets = JSON.parse(result);
+    // 값은 마스킹
+    const masked = {};
+    for (const [key, val] of Object.entries(secrets)) {
+      masked[key] = {
+        key,
+        value: val.computed ? val.computed.slice(0, 10) + '...' : '***',
+        source: 'doppler'
+      };
+    }
+    res.json(masked);
+  } catch (e) {
+    res.json({ error: e.message });
+  }
+});
+
+// SPA fallback - 모든 경로를 index.html로 (맨 마지막에!)
+app.get('*', (req, res) => {
+  res.sendFile(join(__dirname, '..', 'web', 'index.html'));
 });
