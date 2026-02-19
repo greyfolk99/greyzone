@@ -38,13 +38,11 @@ export default function Requests() {
 
   async function handleApprove(id: string) {
     try {
-      // Start WebAuthn authentication
       const authRes = await fetch('/api/auth/start', { method: 'POST' })
       const { challengeId, options } = await authRes.json()
 
       const credential = await startAuthentication(options)
 
-      // Approve with credential
       await fetch(`/api/requests/${id}/approve`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -69,22 +67,22 @@ export default function Requests() {
     }
   }
 
-  const pendingRequests = requests.filter(r => r.status === 'pending')
+  const pendingCount = requests.filter(r => r.status === 'pending').length
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">요청 관리</h1>
-        <div className="flex gap-2">
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <h1 className="text-xl font-bold">요청</h1>
+        <div className="flex gap-1 text-sm">
           <button
             onClick={() => setFilter('pending')}
-            className={`px-4 py-2 rounded-lg ${filter === 'pending' ? 'bg-blue-600' : 'bg-gray-700'}`}
+            className={`px-3 py-1 rounded-lg ${filter === 'pending' ? 'bg-blue-600' : 'bg-gray-700'}`}
           >
-            대기 중 ({pendingRequests.length})
+            대기 ({pendingCount})
           </button>
           <button
             onClick={() => setFilter('all')}
-            className={`px-4 py-2 rounded-lg ${filter === 'all' ? 'bg-blue-600' : 'bg-gray-700'}`}
+            className={`px-3 py-1 rounded-lg ${filter === 'all' ? 'bg-blue-600' : 'bg-gray-700'}`}
           >
             전체
           </button>
@@ -92,13 +90,13 @@ export default function Requests() {
       </div>
 
       {loading ? (
-        <div className="text-center text-gray-400 py-12">로딩 중...</div>
+        <div className="text-center text-gray-400 py-8">로딩 중...</div>
       ) : requests.length === 0 ? (
-        <div className="text-center text-gray-400 py-12">
-          {filter === 'pending' ? '대기 중인 요청이 없습니다' : '요청이 없습니다'}
+        <div className="text-center text-gray-400 py-8">
+          {filter === 'pending' ? '대기 중인 요청 없음' : '요청 없음'}
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3">
           {requests.map(request => (
             <RequestCard
               key={request.id}
@@ -129,45 +127,52 @@ function RequestCard({ request, onApprove, onDeny }: {
 
   return (
     <div className="bg-gray-800 rounded-lg p-4">
-      <div className="flex justify-between items-start mb-3">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className={`px-2 py-1 rounded text-xs ${statusColors[request.status]}`}>
-              {request.status}
-            </span>
-            {request.priority === 'high' && (
-              <span className="px-2 py-1 rounded text-xs bg-red-500/20 text-red-400">
-                높음
-              </span>
-            )}
-          </div>
-          <code className="text-sm text-gray-300 bg-gray-900 px-2 py-1 rounded">
-            {request.command}
-          </code>
-        </div>
-        {request.status === 'pending' && (
-          <div className="flex gap-2">
-            <button
-              onClick={onApprove}
-              className="px-4 py-2 bg-green-600 hover:bg-green-500 rounded-lg text-sm"
-            >
-              ✅ 승인
-            </button>
-            <button
-              onClick={onDeny}
-              className="px-4 py-2 bg-red-600 hover:bg-red-500 rounded-lg text-sm"
-            >
-              ❌ 거부
-            </button>
-          </div>
+      {/* Status & Agent */}
+      <div className="flex items-center gap-2 mb-2 flex-wrap">
+        <span className={`px-2 py-0.5 rounded text-xs ${statusColors[request.status]}`}>
+          {request.status}
+        </span>
+        {request.agent && (
+          <span className="text-xs text-gray-400">
+            {request.agent}
+          </span>
+        )}
+        {request.priority === 'high' && (
+          <span className="px-2 py-0.5 rounded text-xs bg-red-500/20 text-red-400">
+            긴급
+          </span>
         )}
       </div>
       
-      <div className="text-sm text-gray-400">
-        {request.reason && <div>사유: {request.reason}</div>}
-        {request.agent && <div>에이전트: {request.agent}</div>}
-        <div>생성: {new Date(request.created_at).toLocaleString('ko-KR')}</div>
+      {/* Command */}
+      <div className="font-mono text-sm bg-gray-900 px-3 py-2 rounded mb-2 overflow-x-auto">
+        {request.command}
       </div>
+      
+      {/* Reason */}
+      {request.reason && (
+        <div className="text-sm text-gray-400 mb-3">
+          {request.reason}
+        </div>
+      )}
+
+      {/* Actions */}
+      {request.status === 'pending' && (
+        <div className="flex gap-2">
+          <button
+            onClick={onApprove}
+            className="flex-1 py-2 bg-green-600 hover:bg-green-500 rounded-lg text-sm font-medium"
+          >
+            ✅ 승인
+          </button>
+          <button
+            onClick={onDeny}
+            className="flex-1 py-2 bg-red-600 hover:bg-red-500 rounded-lg text-sm font-medium"
+          >
+            ❌ 거부
+          </button>
+        </div>
+      )}
     </div>
   )
 }

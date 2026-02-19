@@ -753,6 +753,11 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', time: new Date().toISOString() });
 });
 
+// SPA fallback - 모든 경로를 index.html로 (API 제외)
+app.get('*', (req, res) => {
+  res.sendFile(join(__dirname, '..', 'web', 'index.html'));
+});
+
 // Start server
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`🔐 Greyzone Server running on http://0.0.0.0:${PORT}`);

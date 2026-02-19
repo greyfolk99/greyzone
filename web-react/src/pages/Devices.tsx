@@ -14,6 +14,7 @@ export default function Devices() {
   const [loading, setLoading] = useState(true)
   const [registering, setRegistering] = useState(false)
   const [newDeviceName, setNewDeviceName] = useState('')
+  const [showForm, setShowForm] = useState(false)
 
   useEffect(() => {
     fetchDevices()
@@ -39,7 +40,6 @@ export default function Devices() {
 
     setRegistering(true)
     try {
-      // Start registration
       const startRes = await fetch('/api/devices/register/start', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -47,10 +47,8 @@ export default function Devices() {
       })
       const { challengeId, options } = await startRes.json()
 
-      // WebAuthn registration
       const credential = await startRegistration(options)
 
-      // Complete registration
       await fetch('/api/devices/register/complete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -63,8 +61,8 @@ export default function Devices() {
       })
 
       setNewDeviceName('')
+      setShowForm(false)
       fetchDevices()
-      alert('디바이스 등록 완료!')
     } catch (err) {
       console.error('Registration failed:', err)
       alert('등록 실패: ' + (err as Error).message)
@@ -74,7 +72,7 @@ export default function Devices() {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm('정말 삭제하시겠습니까?')) return
+    if (!confirm('삭제하시겠습니까?')) return
     
     try {
       await fetch(`/api/devices/${id}`, { method: 'DELETE' })
@@ -85,60 +83,66 @@ export default function Devices() {
   }
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-6">디바이스 관리</h1>
-
-      {/* Register new device */}
-      <div className="bg-gray-800 rounded-lg p-4 mb-6">
-        <h2 className="text-lg font-semibold mb-3">새 디바이스 등록</h2>
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={newDeviceName}
-            onChange={e => setNewDeviceName(e.target.value)}
-            placeholder="디바이스 이름 (예: iPhone, MacBook)"
-            className="flex-1 px-4 py-2 bg-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-          />
-          <button
-            onClick={handleRegister}
-            disabled={registering}
-            className="px-6 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg disabled:opacity-50"
-          >
-            {registering ? '등록 중...' : '등록'}
-          </button>
-        </div>
-        <p className="text-sm text-gray-400 mt-2">
-          Face ID, Touch ID, 또는 보안 키를 사용하여 디바이스를 등록합니다.
-        </p>
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <h1 className="text-xl font-bold">기기 관리</h1>
+        <button
+          onClick={() => setShowForm(!showForm)}
+          className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 rounded-lg text-sm"
+        >
+          {showForm ? '취소' : '+ 등록'}
+        </button>
       </div>
 
-      {/* Device list */}
+      {/* Register Form */}
+      {showForm && (
+        <div className="bg-gray-800 rounded-lg p-4">
+          <div className="space-y-3">
+            <input
+              type="text"
+              value={newDeviceName}
+              onChange={e => setNewDeviceName(e.target.value)}
+              placeholder="디바이스 이름"
+              className="w-full px-4 py-3 bg-gray-700 rounded-lg text-base outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <button
+              onClick={handleRegister}
+              disabled={registering}
+              className="w-full py-3 bg-green-600 hover:bg-green-500 rounded-lg font-medium disabled:opacity-50"
+            >
+              {registering ? '등록 중...' : '🔑 등록하기'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Device List */}
       {loading ? (
-        <div className="text-center text-gray-400 py-12">로딩 중...</div>
+        <div className="text-center text-gray-400 py-8">로딩 중...</div>
       ) : devices.length === 0 ? (
-        <div className="text-center text-gray-400 py-12">
-          등록된 디바이스가 없습니다
+        <div className="text-center text-gray-400 py-8">
+          등록된 기기가 없습니다
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3">
           {devices.map(device => (
             <div key={device.id} className="bg-gray-800 rounded-lg p-4">
               <div className="flex justify-between items-start">
-                <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-xl">📱</span>
-                    <span className="font-semibold">{device.name}</span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-lg">📱</span>
+                    <span className="font-medium truncate">{device.name}</span>
                   </div>
-                  <div className="text-sm text-gray-400 space-y-1">
-                    <div>등록: {new Date(device.registered_at).toLocaleString('ko-KR')}</div>
+                  <div className="text-xs text-gray-400 space-y-0.5">
+                    <div>등록: {new Date(device.registered_at).toLocaleDateString('ko-KR')}</div>
                     {device.last_used_at && (
-                      <div>마지막 사용: {new Date(device.last_used_at).toLocaleString('ko-KR')}</div>
+                      <div>최근: {new Date(device.last_used_at).toLocaleDateString('ko-KR')}</div>
                     )}
                   </div>
                 </div>
                 <button
                   onClick={() => handleDelete(device.id)}
-                  className="px-3 py-1 bg-red-600 hover:bg-red-500 rounded text-sm"
+                  className="px-3 py-1 bg-red-600 hover:bg-red-500 rounded text-xs flex-shrink-0"
                 >
                   삭제
                 </button>
