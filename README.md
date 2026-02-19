@@ -52,8 +52,3 @@ server:
   port: 8080
   https: true
 ```
-
-## 팀
-
-- 아영: React 프론트엔드 + UI
-- 여정: CLI + 백엔드 + Doppler 래핑
